@@ -11,6 +11,7 @@ import org.apache.commons.io.FileUtils;
 
 public class InMemoryClassLoader extends ClassLoader {
 	protected final Map<String, InMemoryClassFile> classMap = new HashMap<String, InMemoryClassFile>();
+	protected final Map<String, Class<?>> definedClassMap = new HashMap<String, Class<?>>();
 
 	public InMemoryClassLoader() {
 		super(InMemoryClassLoader.class.getClassLoader());
@@ -33,7 +34,14 @@ public class InMemoryClassLoader extends ClassLoader {
 				throw new RuntimeException(new ClassNotFoundException());
 			}
 		}
-		clazz = defineClass(name, byteContent, 0, byteContent.length);
+
+		// XXX Can be improved by checking this map first
+		if (definedClassMap.containsKey(name)) {
+			clazz = definedClassMap.get(name);
+		} else {
+			clazz = defineClass(name, byteContent, 0, byteContent.length);
+			definedClassMap.put(name, clazz);
+		}
 
 		return clazz;
 	}

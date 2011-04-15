@@ -71,6 +71,24 @@ public class InMemoryClassLoaderTest {
 	}
 
 	@Test
+	public void findClassDoesNotTryToRedefineClassesTwice() throws Exception {
+		assertStandardClassLoaderCannotFindClass(testClassName);
+		final byte[] loadedClassContent = FileUtils.readFileToByteArray(testClassFile);
+
+		InMemoryClassFile classFileObject = new InMemoryClassFile(testClassName) {
+			@Override
+			public byte[] getBytes() {
+				return loadedClassContent;
+			};
+		};
+
+		testObject.addClass(testClassName, classFileObject);
+
+		testObject.findClass(testClassName);
+		testObject.findClass(testClassName);
+	}
+
+	@Test
 	public void findClassTriesFilesystemSecond() throws Exception {
 		File folderHierarchy = new File(currentDirectory, testPackageName.replace(".", "/"));
 		folderHierarchy.mkdirs();
